@@ -14,14 +14,18 @@ namespace HoneyFramework
         static public float shadeLevel = -245f;
         
         public GameObject obj = null;
-        public Hex owner = null;
+
+        public Vector3i position;
+
+        //public Hex owner = null;
         public List<Chunk> requestedBy = new List<Chunk>();
         public int order = 0;
 
         public void SetOwner(Hex h)
         {
-            owner = h;
-            UpdateMaterial();
+            position = h.position;
+            //owner = h;
+            UpdateMaterial(h.GetVisibility());
             if (h!= null)
             {
                 Vector2 pos = h.GetWorldPosition();
@@ -29,12 +33,13 @@ namespace HoneyFramework
             }
         }
 
-        public void UpdateMaterial()
+        public void UpdateMaterial(Hex.Visibility visibility)
         {
-            if (obj == null || owner == null) return;
+            //if (obj == null || owner == null) return;
+            if (obj == null) return;
             if (clouds == null) GetTextures();
             
-            switch (owner.GetVisibility())
+            switch (visibility)
             {
                 case Hex.Visibility.NotVisible:
                     if (clouds.Count > 0)
@@ -145,11 +150,11 @@ namespace HoneyFramework
         {
             foreach(Hex h in dirtyHexes)
             {
-                Cloud c = clouds.Find(o => o.owner == h);
+                Cloud c = clouds.Find(o => o.position == h.position);
 
                 if (c != null)
                 {
-                    c.UpdateMaterial();
+                    c.UpdateMaterial(h.GetVisibility());
                 }
             }
             dirtyHexes.Clear();
@@ -182,7 +187,7 @@ namespace HoneyFramework
                 //provide cloud instances
                 foreach (KeyValuePair<Vector3i, Hex> pair in chunk.hexesCovered)
                 {                                       
-                    Cloud c = clouds.Find(o => o.owner == pair.Value);
+                    Cloud c = clouds.Find(o => o.position == pair.Value.position);
                     if (c == null)
                     {
                         c = GetFree();
@@ -199,7 +204,7 @@ namespace HoneyFramework
                 //hide instance
                 foreach (KeyValuePair<Vector3i, Hex> pair in chunk.hexesCovered)
                 {
-                    Cloud c = clouds.Find(o => o.owner == pair.Value);
+                    Cloud c = clouds.Find(o => o.position == pair.Value.position);
                     if (c != null)
                     {
                         if (c.requestedBy.Contains(chunk))
@@ -222,7 +227,7 @@ namespace HoneyFramework
         /// <returns></returns>
         private Cloud GetFree()
         {
-            Cloud c = clouds.Find( o => o.owner == null);
+            Cloud c = clouds.Find(o => o.position == null);
             if (c == null)
             {
                 c = new Cloud();
@@ -233,7 +238,7 @@ namespace HoneyFramework
                     c.order = Random.Range(0, 50);
                 }
                 clouds.Add(c);
-            }                        
+            }
             return c;
         }
 

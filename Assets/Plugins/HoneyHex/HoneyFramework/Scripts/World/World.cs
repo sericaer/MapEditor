@@ -219,15 +219,11 @@ namespace HoneyFramework
             {
                 chunk = new Chunk(pos, this);
             }
+
+            List<Vector3i> intersections = chunk.GetInterHexPos();
+
             Rect r = chunk.GetRect();
 
-            //expand its influence by the texture halfWidth (aka radius) which would let us find all hexes which influence our chunk even with border of their texture
-            r.xMin -= Hex.hexTexturePotentialReach;
-            r.yMin -= Hex.hexTexturePotentialReach;
-            r.xMax += Hex.hexTexturePotentialReach;
-            r.yMax += Hex.hexTexturePotentialReach;
-
-            List<Vector3i> intersections = HexNeighbors.GetHexCentersWithinSquare(r);
             bool foundAny = false;
 
             foreach (Vector3i v in intersections)

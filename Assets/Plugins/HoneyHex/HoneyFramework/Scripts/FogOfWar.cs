@@ -15,21 +15,27 @@ namespace HoneyFramework
         
         public GameObject obj = null;
 
-        public Vector3i position;
+        public Vector3i? position = null;
 
         //public Hex owner = null;
         public List<Chunk> requestedBy = new List<Chunk>();
         public int order = 0;
 
-        public void SetOwner(Hex h)
+        public void SetOwner(Vector3i? pos, Hex.Visibility visible)
         {
-            position = h.position;
-            //owner = h;
-            UpdateMaterial(h.GetVisibility());
-            if (h!= null)
+            position = pos;
+            if (pos != null)
             {
-                Vector2 pos = h.GetWorldPosition();
-                obj.transform.position = VectorUtils.Vector2To3D(pos);
+                obj.name = $"Cloud_{pos.Value.x}_{pos.Value.y}_{pos.Value.z}";
+
+                UpdateMaterial(visible);
+
+                Vector2 wordPos = HexCoordinates.HexToWorld(pos.Value);
+                obj.transform.position = VectorUtils.Vector2To3D(wordPos);
+            }
+            else
+            {
+                obj.name = $"Cloud_{null}";
             }
         }
 
@@ -97,7 +103,12 @@ namespace HoneyFramework
                     shade.Add(t);
                 }
             }
-        }            
+        }
+
+        internal void SetPos(Vector3i pos)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 
     public class FogOfWar : MonoBehaviour
@@ -150,7 +161,7 @@ namespace HoneyFramework
         {
             foreach(Hex h in dirtyHexes)
             {
-                Cloud c = clouds.Find(o => o.position == h.position);
+                Cloud c = clouds.Find(o => o.position.Value == h.position);
 
                 if (c != null)
                 {
@@ -185,17 +196,18 @@ namespace HoneyFramework
             if (visible)
             {
                 //provide cloud instances
-                foreach (KeyValuePair<Vector3i, Hex> pair in chunk.hexesCovered)
+                foreach (var pos in chunk.GetInterHexPos())
                 {                                       
-                    Cloud c = clouds.Find(o => o.position == pair.Value.position);
+                    Cloud c = clouds.Find(o => o.position.Value == pos);
                     if (c == null)
                     {
                         c = GetFree();
+
+                        c.SetOwner(pos, Hex.Visibility.NotVisible);
                     }
+
                     //if more than one chunk need this cloud (they share the same hex) then on leaving one of those chunks cloud will not be turned off
                     c.requestedBy.Add(chunk);
-
-                    c.SetOwner(pair.Value);                    
                 }
             
             }
@@ -204,7 +216,7 @@ namespace HoneyFramework
                 //hide instance
                 foreach (KeyValuePair<Vector3i, Hex> pair in chunk.hexesCovered)
                 {
-                    Cloud c = clouds.Find(o => o.position == pair.Value.position);
+                    Cloud c = clouds.Find(o => o.position.Value == pair.Value.position);
                     if (c != null)
                     {
                         if (c.requestedBy.Contains(chunk))
@@ -235,6 +247,7 @@ namespace HoneyFramework
                 {
                     c.obj = (GameObject)GameObject.Instantiate(World.GetInstance().fogOfWarBase);
                     c.obj.transform.SetParent(World.GetInstance().transform);
+                    
                     c.order = Random.Range(0, 50);
                 }
                 clouds.Add(c);
@@ -252,7 +265,7 @@ namespace HoneyFramework
             if (c != null)
             {
                 c.obj.SetActive(false);
-                c.SetOwner(null);                
+                c.SetOwner(null, Hex.Visibility.FullyVisible);                
             }            
         }  
 

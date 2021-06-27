@@ -269,6 +269,19 @@ namespace HoneyFramework
             }
         }
 
+        internal List<Vector3i> GetInterHexPos()
+        {
+            Rect r = GetRect();
+
+            //expand its influence by the texture halfWidth (aka radius) which would let us find all hexes which influence our chunk even with border of their texture
+            r.xMin -= Hex.hexTexturePotentialReach;
+            r.yMin -= Hex.hexTexturePotentialReach;
+            r.xMax += Hex.hexTexturePotentialReach;
+            r.yMax += Hex.hexTexturePotentialReach;
+
+            return HexNeighbors.GetHexCentersWithinSquare(r);
+        }
+
         public void SetMarkerMaterials()
         {
             if (chunkMaterial != null && MHGameSettings.GetMarkersMode())

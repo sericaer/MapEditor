@@ -226,7 +226,7 @@ namespace HoneyFramework
                 m.sharedMesh = ProduceTerrainMesh(this);
             }
 
-            chunkObject.transform.parent = worldOwner.transform;
+            chunkObject.transform.parent = worldOwner.chunkContainer;
             chunkObject.name = "Chunk" + position;
 
             Vector2 center = GetRect().center;

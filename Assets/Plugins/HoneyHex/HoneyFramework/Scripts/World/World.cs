@@ -4,6 +4,8 @@ using System.Text;
 using UnityEngine;
 using System;
 using System.Collections;
+using UnityEngine.UI;
+using System.Linq;
 
 namespace HoneyFramework
 {
@@ -49,10 +51,14 @@ namespace HoneyFramework
         public GameObject chunkBaseWithMarkers;
         public GameObject foregroundBase;
         public GameObject fogOfWarBase;
+        public GameObject topUIPrefabs;
+
         public Camera terrainCamera;
         public UFTAtlasMetadata foregroundAtlas;
 
         public Transform fogContainer;
+        public Transform chunkContainer;
+        public Canvas mapUIContainer;
 
         public int seed;
 
@@ -79,6 +85,40 @@ namespace HoneyFramework
             if (foregroundAtlas == null) Debug.LogError("Missing foreground atlas! you need to drag & drop one to World instance!");
         }
 
+        internal void ClickPos(Vector3i hexPos)
+        {
+            foreach (var elem in HexNeighbors.GetRange(hexPos, 3).Where(x => !World.GetInstance().hexes.ContainsKey(x)))
+            {
+                List<TerrainDefinition> tdList = TerrainDefinition.definitions.FindAll(o => o.source.mode == MHTerrain.Mode.IsBorderType || o.source.mode == MHTerrain.Mode.normal);
+                Hex h = GetHexDefinition(World.GeneratorMode.Random, elem, tdList);
+                GetInstance().hexes[elem] = h;
+                h.RebuildChunksOwningThisHex();
+            }
+
+            GetInstance().hexes[hexPos].SetVisibility(Hex.Visibility.FullyVisible);
+
+        }
+
+        private void Start()
+        {
+            if (World.GetInstance().status == World.Status.NotReady)
+            {
+                foreach (var elem in HexNeighbors.GetRange(Vector3i.zero, 2))
+                {
+                    var topUIObj = (GameObject)GameObject.Instantiate(topUIPrefabs);
+                    topUIObj.transform.SetParent(mapUIContainer.transform, false);
+                    topUIObj.GetComponent<Text>().text = $"{elem.x}-{elem.y}-{elem.z}";
+                    var wordPos = HexCoordinates.HexToWorld3D(elem);
+
+                    var screenPos = terrainCamera.WorldToScreenPoint(wordPos);
+                    topUIObj.transform.position = screenPos;
+                }
+
+                DataManager.Reload();
+                Initialize();
+                GameManager.instance.ActivatePathfinder();
+            }
+        }
         public void ReadyToPolishChunk(Chunk c)
         {
             chunksToPolish.Add(c);

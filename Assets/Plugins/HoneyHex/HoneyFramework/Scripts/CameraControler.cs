@@ -1,9 +1,6 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using Pathfinding;
-using UnityEngine.UI;
+
 
 namespace HoneyFramework
 {
@@ -14,10 +11,6 @@ namespace HoneyFramework
     {
         public float speed = 1;
         Plane plane = new Plane(Vector3.up, Vector3.zero);
-
-        public Canvas canvas;
-
-        public GameObject topUIPrefabs;
 
         void Start()
         {
@@ -81,12 +74,14 @@ namespace HoneyFramework
 
                     Vector2 hexWorldPosition = VectorUtils.Vector3To2D(hitPoint);
                     Vector3i hexPos = HexCoordinates.GetHexCoordAt(hexWorldPosition);
-                    Debug.Log("Selected hex" + hexPos);                    
+                    Debug.Log("Selected hex" + hexPos);
 
                     if (GameManager.instance.formations.Count > 0)
                     {
                         GameManager.instance.formations[GameManager.instance.formations.Count - 1].GoTo(hexPos);
                     }
+
+                    World.GetInstance().ClickPos(hexPos);
 
                     //EXAMPLE1: Color radius or trees
                     //World.PaintTrees(new Vector2(hitPoint.x, hitPoint.z), 3f, new Color(1f, 1f, 0f));
@@ -95,15 +90,15 @@ namespace HoneyFramework
                     //HexMarkers.SetMarkerType(hexPos, 11, HexMarkers.Layer.Borders, HexMarkers.directionZeroOneScale[Random.Range(0,6)]);
 
                     //EXAMPLE3: Click to rerandomise hex and rebake chunks linked to it
-                    foreach (var elem in HexNeighbors.GetRange(hexPos, 3).Where(x => !World.GetInstance().hexes.ContainsKey(x)))
-                    {
-                        List<TerrainDefinition> tdList = TerrainDefinition.definitions.FindAll(o => o.source.mode == MHTerrain.Mode.IsBorderType || o.source.mode == MHTerrain.Mode.normal);
-                        Hex h = World.GetHexDefinition(World.GeneratorMode.Random, elem, tdList);
-                        World.GetInstance().hexes[elem] = h;
-                        h.RebuildChunksOwningThisHex();
-                    }
+                    //foreach (var elem in HexNeighbors.GetRange(hexPos, 3).Where(x => !World.GetInstance().hexes.ContainsKey(x)))
+                    //{
+                    //    List<TerrainDefinition> tdList = TerrainDefinition.definitions.FindAll(o => o.source.mode == MHTerrain.Mode.IsBorderType || o.source.mode == MHTerrain.Mode.normal);
+                    //    Hex h = World.GetHexDefinition(World.GeneratorMode.Random, elem, tdList);
+                    //    World.GetInstance().hexes[elem] = h;
+                    //    h.RebuildChunksOwningThisHex();
+                    //}
 
-                    World.GetInstance().hexes[hexPos].SetVisibility(Hex.Visibility.FullyVisible);
+                    //World.GetInstance().hexes[hexPos].SetVisibility(Hex.Visibility.FullyVisible);
 
                     //EXAMPLE4: Click to switch road status on pointed hex
                     //Roads.SwitchRoadAt(hexPos);
@@ -115,146 +110,146 @@ namespace HoneyFramework
             }
         }
 
-        void OnGUI()
-        {
-            GUILayout.BeginHorizontal();
+        //void OnGUI()
+        //{
+        //    GUILayout.BeginHorizontal();
 
-            GUILayout.Label("", GUILayout.Width(Screen.width - 150));
+        //    GUILayout.Label("", GUILayout.Width(Screen.width - 150));
 
-            GUILayout.BeginVertical();
-            GUILayout.Label("Status: " + World.GetInstance().status.ToString());
-            GUILayout.Label("DX Mode: " + (MHGameSettings.GetDx11Mode() ? "DX11" : "Non DX11"));
+        //    GUILayout.BeginVertical();
+        //    GUILayout.Label("Status: " + World.GetInstance().status.ToString());
+        //    GUILayout.Label("DX Mode: " + (MHGameSettings.GetDx11Mode() ? "DX11" : "Non DX11"));
 
-            //feedback for world status
-            if (World.GetInstance().status == World.Status.NotReady)
-            {
-                if (GUILayout.Button("Generate World"))
-                {
-                    foreach (var elem in HexNeighbors.GetRange(Vector3i.zero, 2))
-                    {
-                        var topUIObj = (GameObject)GameObject.Instantiate(topUIPrefabs);
-                        topUIObj.transform.SetParent(canvas.transform, false);
-                        topUIObj.GetComponent<Text>().text = $"{elem.x}-{elem.y}-{elem.z}";
-                        var wordPos = HexCoordinates.HexToWorld3D(elem);
+        //    //feedback for world status
+        //    if (World.GetInstance().status == World.Status.NotReady)
+        //    {
+        //        if (GUILayout.Button("Generate World"))
+        //        {
+        //            foreach (var elem in HexNeighbors.GetRange(Vector3i.zero, 2))
+        //            {
+        //                var topUIObj = (GameObject)GameObject.Instantiate(topUIPrefabs);
+        //                topUIObj.transform.SetParent(canvas.transform, false);
+        //                topUIObj.GetComponent<Text>().text = $"{elem.x}-{elem.y}-{elem.z}";
+        //                var wordPos = HexCoordinates.HexToWorld3D(elem);
 
 
-                        //var screenPos = GetComponent<Camera>().WorldToScreenPoint(wordPos);
+        //                //var screenPos = GetComponent<Camera>().WorldToScreenPoint(wordPos);
 
-                        //Vector2 localPos;
-                        //RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas.GetComponent<RectTransform>(), screenPos, GetComponent<Camera>(), out localPos);
-                        //topUIObj.transform.localPosition = new Vector3(localPos.x, localPos.y, 0);
+        //                //Vector2 localPos;
+        //                //RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas.GetComponent<RectTransform>(), screenPos, GetComponent<Camera>(), out localPos);
+        //                //topUIObj.transform.localPosition = new Vector3(localPos.x, localPos.y, 0);
 
-                        var screenPos = GetComponent<Camera>().WorldToScreenPoint(wordPos);
-                        topUIObj.transform.position = screenPos;
-                    }
+        //                var screenPos = GetComponent<Camera>().WorldToScreenPoint(wordPos);
+        //                topUIObj.transform.position = screenPos;
+        //            }
 
-                    DataManager.Reload();
-                    World.GetInstance().Initialize();
-                    GameManager.instance.ActivatePathfinder();
-                }
+        //            DataManager.Reload();
+        //            World.GetInstance().Initialize();
+        //            GameManager.instance.ActivatePathfinder();
+        //        }
 
-                if (GUILayout.Button("Load map"))
-                {
-                    DataManager.Reload();
-                    World.GetInstance().InitializeFromSave();
-                    GameManager.instance.ActivatePathfinder();
-                }
-            }
-            else if (World.GetInstance().status == World.Status.Ready)
-            {
-                if (GUILayout.Button("Generate World"))
-                {
-                    DataManager.Reload();
-                    World.GetInstance().Initialize();
-                    GameManager.instance.ActivatePathfinder();
-                }
+        //        if (GUILayout.Button("Load map"))
+        //        {
+        //            DataManager.Reload();
+        //            World.GetInstance().InitializeFromSave();
+        //            GameManager.instance.ActivatePathfinder();
+        //        }
+        //    }
+        //    else if (World.GetInstance().status == World.Status.Ready)
+        //    {
+        //        if (GUILayout.Button("Generate World"))
+        //        {
+        //            DataManager.Reload();
+        //            World.GetInstance().Initialize();
+        //            GameManager.instance.ActivatePathfinder();
+        //        }
 
-                if (GUILayout.Button("Load map"))
-                {
-                    DataManager.Reload();
-                    World.GetInstance().InitializeFromSave();
-                    GameManager.instance.ActivatePathfinder();
-                }
+        //        if (GUILayout.Button("Load map"))
+        //        {
+        //            DataManager.Reload();
+        //            World.GetInstance().InitializeFromSave();
+        //            GameManager.instance.ActivatePathfinder();
+        //        }
 
-                if (GUILayout.Button("Spawn character"))
-                {
-                    Formation f = Formation.CreateFormation("Caps", Vector3i.zero);
-                    for (int i = 0; i < 10; i++)
-                    {
-                        f.AddCharacter(CharacterActor.CreateCharacter("Characters/CapCharacter", 0.3f));
-                    }
-                    GameManager.instance.formations.Add(f);
-                }
+        //        if (GUILayout.Button("Spawn character"))
+        //        {
+        //            Formation f = Formation.CreateFormation("Caps", Vector3i.zero);
+        //            for (int i = 0; i < 10; i++)
+        //            {
+        //                f.AddCharacter(CharacterActor.CreateCharacter("Characters/CapCharacter", 0.3f));
+        //            }
+        //            GameManager.instance.formations.Add(f);
+        //        }
 
-                if (GUILayout.Button("Save map"))
-                {
-                    SaveManager.Save(World.GetInstance(), false);
-                }   
+        //        if (GUILayout.Button("Save map"))
+        //        {
+        //            SaveManager.Save(World.GetInstance(), false);
+        //        }   
              
-                if (GUILayout.Button("Mark River Neighbours"))
-                {
-                    HexMarkers.ClearAllMarkers();
-                    foreach(KeyValuePair<Vector3i, Hex> pair in World.GetInstance().hexes)
-                    {
-                        if (pair.Value.directionsPassingRiver.Count > 0)
-                        {
-                            HexMarkers.SetMarkerType(pair.Key, HexMarkers.MarkerType.Friendly);
-                        }
-                    }                                                
-                }
+        //        if (GUILayout.Button("Mark River Neighbours"))
+        //        {
+        //            HexMarkers.ClearAllMarkers();
+        //            foreach(KeyValuePair<Vector3i, Hex> pair in World.GetInstance().hexes)
+        //            {
+        //                if (pair.Value.directionsPassingRiver.Count > 0)
+        //                {
+        //                    HexMarkers.SetMarkerType(pair.Key, HexMarkers.MarkerType.Friendly);
+        //                }
+        //            }                                                
+        //        }
 
-                if (GUILayout.Button("Random FoW mode"))
-                {
-                    int randomMode = Random.Range(0, 3);
-                    foreach(KeyValuePair<Vector3i, Hex> pair in World.GetInstance().hexes)
-                    {
-                        if (randomMode == 0)
-                        {
-                            //clear
-                            pair.Value.SetVisibility(Hex.Visibility.FullyVisible);
-                        }
-                        else if (randomMode == 1)
-                        {
-                            //random
-                            float r = Random.Range(0f, 1f);
-                            if (r < 0.33f)
-                            {
-                                pair.Value.SetVisibility(Hex.Visibility.FullyVisible);
-                            }
-                            else if (r < 0.67f)
-                            {
-                                pair.Value.SetVisibility(Hex.Visibility.Shadowed);
-                            }
-                            else
-                            {
-                                pair.Value.SetVisibility(Hex.Visibility.NotVisible);
-                            }
-                        }
-                        else if (randomMode == 2)
-                        {
-                            // center
+        //        if (GUILayout.Button("Random FoW mode"))
+        //        {
+        //            int randomMode = Random.Range(0, 3);
+        //            foreach(KeyValuePair<Vector3i, Hex> pair in World.GetInstance().hexes)
+        //            {
+        //                if (randomMode == 0)
+        //                {
+        //                    //clear
+        //                    pair.Value.SetVisibility(Hex.Visibility.FullyVisible);
+        //                }
+        //                else if (randomMode == 1)
+        //                {
+        //                    //random
+        //                    float r = Random.Range(0f, 1f);
+        //                    if (r < 0.33f)
+        //                    {
+        //                        pair.Value.SetVisibility(Hex.Visibility.FullyVisible);
+        //                    }
+        //                    else if (r < 0.67f)
+        //                    {
+        //                        pair.Value.SetVisibility(Hex.Visibility.Shadowed);
+        //                    }
+        //                    else
+        //                    {
+        //                        pair.Value.SetVisibility(Hex.Visibility.NotVisible);
+        //                    }
+        //                }
+        //                else if (randomMode == 2)
+        //                {
+        //                    // center
 
-                            int dist = HexCoordinates.HexDistance( pair.Value.position, Vector3i.zero);
+        //                    int dist = HexCoordinates.HexDistance( pair.Value.position, Vector3i.zero);
 
-                            if (dist < 2)
-                            {
-                                pair.Value.SetVisibility(Hex.Visibility.FullyVisible);
-                            }
-                            else if (dist < 3)
-                            {
-                                pair.Value.SetVisibility(Hex.Visibility.Shadowed);
-                            }
-                            else
-                            {
-                                pair.Value.SetVisibility(Hex.Visibility.NotVisible);
-                            }
-                        }
-                    }
-                }
-            }
-            GUILayout.EndVertical();
-            GUILayout.EndHorizontal();
-        }
+        //                    if (dist < 2)
+        //                    {
+        //                        pair.Value.SetVisibility(Hex.Visibility.FullyVisible);
+        //                    }
+        //                    else if (dist < 3)
+        //                    {
+        //                        pair.Value.SetVisibility(Hex.Visibility.Shadowed);
+        //                    }
+        //                    else
+        //                    {
+        //                        pair.Value.SetVisibility(Hex.Visibility.NotVisible);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    GUILayout.EndVertical();
+        //    GUILayout.EndHorizontal();
+        //}
 
         /// <summary>
         /// allows to control quality level (tessellation is great but can get easily overkill if camera lift up)

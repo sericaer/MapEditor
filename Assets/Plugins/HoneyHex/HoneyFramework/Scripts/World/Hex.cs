@@ -256,7 +256,6 @@ namespace HoneyFramework
             World.GetInstance().PrepareChunkData(vector2);
             var c = World.instance.chunks[vector2];
             chunks.Add(c);
-
             FogOfWar.ChunkUpdate(c, true);
 
             vector2 = Chunk.WorldToChunkVector2(new Vector3(xMax, 0f, yMin));
@@ -285,10 +284,6 @@ namespace HoneyFramework
             //if (!chunks.Contains(c)) { World.GetInstance().PrepareChunkData(c.position); }
 
             World.GetInstance().ReadyToPolishHex(this);
-
-            
-
-
         }
 
         /// <summary>

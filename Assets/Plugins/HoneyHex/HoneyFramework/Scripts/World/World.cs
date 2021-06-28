@@ -51,6 +51,9 @@ namespace HoneyFramework
         public GameObject fogOfWarBase;
         public Camera terrainCamera;
         public UFTAtlasMetadata foregroundAtlas;
+
+        public Transform fogContainer;
+
         public int seed;
 
         public WorldOven ovenBase;

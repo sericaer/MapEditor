@@ -148,9 +148,9 @@ namespace HoneyFramework
                         topUIObj.transform.position = screenPos;
                     }
 
-                    //DataManager.Reload();
-                    //World.GetInstance().Initialize();
-                    //GameManager.instance.ActivatePathfinder();
+                    DataManager.Reload();
+                    World.GetInstance().Initialize();
+                    GameManager.instance.ActivatePathfinder();
                 }
 
                 if (GUILayout.Button("Load map"))

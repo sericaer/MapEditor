@@ -246,7 +246,7 @@ namespace HoneyFramework
                 if (World.GetInstance().fogOfWarBase != null)
                 {
                     c.obj = (GameObject)GameObject.Instantiate(World.GetInstance().fogOfWarBase);
-                    c.obj.transform.SetParent(World.GetInstance().transform);
+                    c.obj.transform.SetParent(World.GetInstance().fogContainer);
                     
                     c.order = Random.Range(0, 50);
                 }

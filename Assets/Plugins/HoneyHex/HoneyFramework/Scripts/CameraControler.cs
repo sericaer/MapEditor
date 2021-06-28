@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Pathfinding;
+using UnityEngine.UI;
 
 namespace HoneyFramework
 {
@@ -13,6 +14,10 @@ namespace HoneyFramework
     {
         public float speed = 1;
         Plane plane = new Plane(Vector3.up, Vector3.zero);
+
+        public Canvas canvas;
+
+        public GameObject topUIPrefabs;
 
         void Start()
         {
@@ -125,9 +130,27 @@ namespace HoneyFramework
             {
                 if (GUILayout.Button("Generate World"))
                 {
-                    DataManager.Reload();
-                    World.GetInstance().Initialize();
-                    GameManager.instance.ActivatePathfinder();
+                    foreach (var elem in HexNeighbors.GetRange(Vector3i.zero, 2))
+                    {
+                        var topUIObj = (GameObject)GameObject.Instantiate(topUIPrefabs);
+                        topUIObj.transform.SetParent(canvas.transform, false);
+                        topUIObj.GetComponent<Text>().text = $"{elem.x}-{elem.y}-{elem.z}";
+                        var wordPos = HexCoordinates.HexToWorld3D(elem);
+
+
+                        //var screenPos = GetComponent<Camera>().WorldToScreenPoint(wordPos);
+
+                        //Vector2 localPos;
+                        //RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas.GetComponent<RectTransform>(), screenPos, GetComponent<Camera>(), out localPos);
+                        //topUIObj.transform.localPosition = new Vector3(localPos.x, localPos.y, 0);
+
+                        var screenPos = GetComponent<Camera>().WorldToScreenPoint(wordPos);
+                        topUIObj.transform.position = screenPos;
+                    }
+
+                    //DataManager.Reload();
+                    //World.GetInstance().Initialize();
+                    //GameManager.instance.ActivatePathfinder();
                 }
 
                 if (GUILayout.Button("Load map"))
